@@ -27,3 +27,8 @@ handle(Req, _) ->
     %% return response with cookies
     {ok, [DeleteKeyCookie, FizzCookie], "key deleted; fizz set"}.
 ```
+
+### Changes
+
+This version tries to use binaries in all places instead of strings.
+

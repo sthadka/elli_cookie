@@ -8,7 +8,10 @@
 -module(elli_cookie).
 
 %% Basic Cookie Management
--export([parse/1, get/2, get/3, new/2, new/3, delete/1, delete/2]).
+-export([parse/1,
+         get/2, get/3,
+         new/1, new/2, new/3,
+         delete/1, delete/2]).
 
 %% Cookie Options
 -export([expires/1, path/1, domain/1, secure/0, http_only/0, max_age/1]).
@@ -40,6 +43,17 @@ get(_, no_cookies, Default) ->
 get(Key, Cookies, Default) ->
     true = valid_cookie_name(Key),
     proplists:get_value(Key, Cookies, Default).
+
+%% creates multiple new cookies
+-spec new([{Name :: binary(), Value :: binary()} |
+           {Name :: binary(), Value :: binary(), Options ::
+            [cookie_option()]}]) -> cookie().
+new(PList) ->
+    lists:map(fun ({Name, Value}) ->
+                      new(Name, Value);
+                  ({Name, Value, Options}) ->
+                      new(Name, Value, Options)
+              end, PList).
 
 %% creates a new cookie in a format appropriate for server response
 -spec new(Name :: binary(), Value :: binary()) -> cookie().
@@ -247,6 +261,10 @@ new_test_() ->
      , ?_assertMatch({<<"Set-Cookie">>, <<"name=val=">>}, new(<<"name">>, <<"val=">>))
      , ?_assertMatch({<<"Set-Cookie">>, <<"name=val=">>}, new(<<"name">>, <<"val=">>))
      , ?_assertError({badmatch, {invalid_cookie_name, <<"name=">>}}, new(<<"name=">>, <<"val">>))
+
+     %% multiple cookies
+     , ?_assertMatch([{<<"Set-Cookie">>, <<"k1=v1">>}, {<<"Set-Cookie">>, <<"k2=v2">>}],
+                     new([{<<"k1">>, <<"v1">>}, {<<"k2">>, <<"v2">>}]))
 
      %% be careful: binaries are not checked for stringyness
      , ?_assertMatch(_, new(<<1>>, <<"val">>))

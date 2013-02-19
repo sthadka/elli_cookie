@@ -158,8 +158,10 @@ tokenize(_) ->
     no_cookies.
 
 tokenize2(NVP) ->
-    [N,V] = binary:split(NVP, <<"=">>, [trim]),
-    {trimre(N), trimre(V)}.
+    case binary:split(NVP, <<"=">>, [trim]) of
+        [N, V] -> {trimre(N), trimre(V)};
+        [N]    -> {trimre(N), <<>>}
+    end.
 
 % From
 % https://groups.google.com/forum/?fromgroups=#!topic/erlang-programming/gSvv6ARI21U
@@ -224,7 +226,11 @@ valid_cookie_value(X) ->
 
 parse_test_() ->
     [?_assertError(function_clause, parse(#req{}))
-    , ?_assertError({badmatch, _}, parse(#req{headers=[{<<"Cookie">>, <<"1=">>}]}))
+     , ?_assertEqual([{<<"1">>, <<>>}], parse(#req{headers=[{<<"Cookie">>, <<"1=">>}]}))
+     , ?_assertEqual([{<<"1">>, <<>>}, {<<"2">>, <<"3">>}],
+                     parse(#req{headers=[{<<"Cookie">>, <<"1= ;2=3;">>}]}))
+     , ?_assertEqual([{<<"1">>, <<>>}, {<<"2">>, <<"3">>}],
+                     parse(#req{headers=[{<<"Cookie">>, <<"1=;2=3;">>}]}))
 
     , ?_assertEqual(no_cookies, parse(#req{headers=[]}))
     , ?_assertEqual([{<<"1">>, <<"2">>}], parse(#req{headers=[{<<"Cookie">>, <<"1=2">>}]}))

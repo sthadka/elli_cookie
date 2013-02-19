@@ -267,7 +267,7 @@ new_test_() ->
                      new([{<<"k1">>, <<"v1">>}, {<<"k2">>, <<"v2">>}]))
 
      %% be careful: binaries are not checked for stringyness
-     , ?_assertMatch(_, new(<<1>>, <<"val">>))
+     , ?_assertMatch({_, <<1, "=val">>}, new(<<1>>, <<"val">>))
 
      , ?_assertThrow({error, {invalid_cookie_attribute, domain}}, new(<<"n">>, <<"v">>, [domain, "/"]))
      , ?_assertMatch({_, <<"n=v;Domain=www.example.com">>}, new(<<"n">>, <<"v">>, [domain(<<"www.example.com">>)]))
